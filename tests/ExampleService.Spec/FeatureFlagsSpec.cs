@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
-using ExampleService.Domain.FeatureFlags;
+using Contracts.FeatureFlags;
 
 namespace ExampleService.Spec.FeatureFlags;
 
@@ -12,7 +11,7 @@ public class CreateFeatureFlag : TestEnvironment
     {
         // Given valid feature flag data
         await InitializeAsync();
-        var featureFlag = new
+        var featureFlag = new CreateFeatureFlagRequest
         {
             Key = "test_feature",
             Description = "A test feature flag",
@@ -26,7 +25,7 @@ public class CreateFeatureFlag : TestEnvironment
         // Then feature flag is created
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-        var created = await response.Content.ReadFromJsonAsync<FeatureFlag>();
+        var created = await response.Content.ReadFromJsonAsync<FeatureFlagResponse>();
         Assert.NotNull(created);
         Assert.Equal("test_feature", created.Key);
         Assert.Equal("A test feature flag", created.Description);
@@ -40,11 +39,11 @@ public class CreateFeatureFlag : TestEnvironment
     {
         // Given a feature flag already exists
         await InitializeAsync();
-        var featureFlag = new { Key = "duplicate_feature", Description = "First flag" };
+        var featureFlag = new CreateFeatureFlagRequest { Key = "duplicate_feature", Description = "First flag" };
         await Client.PostAsJsonAsync("/api/feature-flags", featureFlag);
 
         // When creating another with same key
-        var duplicate = new { Key = "duplicate_feature", Description = "Duplicate flag" };
+        var duplicate = new CreateFeatureFlagRequest { Key = "duplicate_feature", Description = "Duplicate flag" };
         var response = await Client.PostAsJsonAsync("/api/feature-flags", duplicate);
 
         // Then conflict is returned
@@ -56,7 +55,7 @@ public class CreateFeatureFlag : TestEnvironment
     {
         // Given invalid rollout percentage
         await InitializeAsync();
-        var featureFlag = new
+        var featureFlag = new CreateFeatureFlagRequest
         {
             Key = "invalid_percentage",
             Description = "Invalid percentage",
@@ -85,7 +84,7 @@ public class GetFeatureFlags : TestEnvironment
 
         // Then empty list is returned
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var featureFlags = await response.Content.ReadFromJsonAsync<List<FeatureFlag>>();
+        var featureFlags = await response.Content.ReadFromJsonAsync<List<FeatureFlagResponse>>();
         Assert.NotNull(featureFlags);
         Assert.Empty(featureFlags);
     }
@@ -95,8 +94,8 @@ public class GetFeatureFlags : TestEnvironment
     {
         // Given feature flags exist
         await InitializeAsync();
-        var flag1 = new { Key = "feature_1", Description = "First feature" };
-        var flag2 = new { Key = "feature_2", Description = "Second feature" };
+        var flag1 = new CreateFeatureFlagRequest { Key = "feature_1", Description = "First feature" };
+        var flag2 = new CreateFeatureFlagRequest { Key = "feature_2", Description = "Second feature" };
         await Client.PostAsJsonAsync("/api/feature-flags", flag1);
         await Client.PostAsJsonAsync("/api/feature-flags", flag2);
 
@@ -105,7 +104,7 @@ public class GetFeatureFlags : TestEnvironment
 
         // Then all feature flags are returned
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var featureFlags = await response.Content.ReadFromJsonAsync<List<FeatureFlag>>();
+        var featureFlags = await response.Content.ReadFromJsonAsync<List<FeatureFlagResponse>>();
         Assert.NotNull(featureFlags);
         Assert.Equal(2, featureFlags.Count);
         Assert.Contains(featureFlags, f => f.Key == "feature_1");
@@ -118,15 +117,16 @@ public class GetFeatureFlags : TestEnvironment
         // Given a feature flag exists
         await InitializeAsync();
         var createResponse = await Client.PostAsJsonAsync("/api/feature-flags",
-            new { Key = "specific_feature", Description = "Specific feature" });
-        var created = await createResponse.Content.ReadFromJsonAsync<FeatureFlag>();
+            new CreateFeatureFlagRequest { Key = "specific_feature", Description = "Specific feature" });
+        var created = await createResponse.Content.ReadFromJsonAsync<FeatureFlagResponse>();
+        Assert.NotNull(created);
 
         // When getting feature flag by id
         var response = await Client.GetAsync($"/api/feature-flags/{created.Id}");
 
         // Then feature flag is returned
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var retrieved = await response.Content.ReadFromJsonAsync<FeatureFlag>();
+        var retrieved = await response.Content.ReadFromJsonAsync<FeatureFlagResponse>();
         Assert.NotNull(retrieved);
         Assert.Equal(created.Id, retrieved.Id);
         Assert.Equal("specific_feature", retrieved.Key);
@@ -155,11 +155,12 @@ public class UpdateFeatureFlag : TestEnvironment
         // Given a feature flag exists
         await InitializeAsync();
         var createResponse = await Client.PostAsJsonAsync("/api/feature-flags",
-            new { Key = "update_me", Description = "Original description", Enabled = false });
-        var created = await createResponse.Content.ReadFromJsonAsync<FeatureFlag>();
+            new CreateFeatureFlagRequest { Key = "update_me", Description = "Original description", Enabled = false });
+        var created = await createResponse.Content.ReadFromJsonAsync<FeatureFlagResponse>();
+        Assert.NotNull(created);
 
         // When updating feature flag
-        var update = new
+        var update = new UpdateFeatureFlagRequest
         {
             Key = "update_me",
             Description = "Updated description",
@@ -170,7 +171,7 @@ public class UpdateFeatureFlag : TestEnvironment
 
         // Then feature flag is updated
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var updated = await response.Content.ReadFromJsonAsync<FeatureFlag>();
+        var updated = await response.Content.ReadFromJsonAsync<FeatureFlagResponse>();
         Assert.NotNull(updated);
         Assert.Equal(created.Id, updated.Id);
         Assert.Equal("Updated description", updated.Description);
@@ -184,7 +185,7 @@ public class UpdateFeatureFlag : TestEnvironment
         // Given feature flag does not exist
         await InitializeAsync();
         var nonExistentId = Guid.NewGuid();
-        var update = new { Key = "nonexistent", Description = "Updated" };
+        var update = new UpdateFeatureFlagRequest { Key = "nonexistent", Description = "Updated" };
 
         // When updating feature flag
         var response = await Client.PutAsJsonAsync($"/api/feature-flags/{nonExistentId}", update);
@@ -202,8 +203,9 @@ public class DeleteFeatureFlag : TestEnvironment
         // Given a feature flag exists
         await InitializeAsync();
         var createResponse = await Client.PostAsJsonAsync("/api/feature-flags",
-            new { Key = "delete_me", Description = "To be deleted" });
-        var created = await createResponse.Content.ReadFromJsonAsync<FeatureFlag>();
+            new CreateFeatureFlagRequest { Key = "delete_me", Description = "To be deleted" });
+        var created = await createResponse.Content.ReadFromJsonAsync<FeatureFlagResponse>();
+        Assert.NotNull(created);
 
         // When deleting feature flag
         var deleteResponse = await Client.DeleteAsync($"/api/feature-flags/{created.Id}");
