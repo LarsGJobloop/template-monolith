@@ -8,7 +8,7 @@ Content:
   - Database service (PostgreSQL)
   - Ingress service (Traefik)
 - A single .NET Service example
-  - Minimal API
+  - Controller-based API with automatic model validation
   - ATDD style test configured with TestEnvironment abstraction
   - DatabaseContext
   - Simple schema migration
