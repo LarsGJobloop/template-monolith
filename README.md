@@ -37,6 +37,25 @@ Content:
      docker compose down --volumes --remove-orphans
      ```
 
+## Services
+
+All services are accessible through Traefik reverse proxy at the following addresses:
+
+- **Example Service API**: http://example-service.localhost
+
+  - Feature Flags API: http://example-service.localhost/api/feature-flags
+  - Health Check: http://example-service.localhost/health
+
+- **Traefik Dashboard**: http://traefik.localhost
+
+  - View routing configuration and service status
+
+- **pgAdmin**: http://pgadmin.localhost
+  - PostgreSQL administration UI
+  - Default credentials: admin@example.com / password
+
+> **Note**: Ensure your `/etc/hosts` includes entries for `*.localhost` domains, or use a DNS service that resolves `*.localhost` to `127.0.0.1`.
+
 ## Notes
 
 - When adding a new database (in [init-database.sql](/init-databases.sql)). You need to clear out the database volume (DELETING ALL DATA) using `docker compose down --volumes`. It's the simplest solution for development, though production would run a dedicated migration script.
