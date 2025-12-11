@@ -1,4 +1,7 @@
+using System.Linq;
 using ExampleService.Infrastructure.Data;
+using ExampleService.Domain.FeatureFlags;
+using Contracts.FeatureFlags;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +16,8 @@ var connectionString = $"Host={dbHost};Port={dbPort};Username={dbUser};Password=
 
 builder.Services.AddDbContext<AppDbContext>(options =>
   options.UseNpgsql(connectionString));
+
+builder.Services.AddValidation();
 
 var app = builder.Build();
 
@@ -40,6 +45,115 @@ app.MapGet("/ready", async (AppDbContext dbContext) =>
     return Results.Ok();
   }
   return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+});
+
+// Feature Flags API
+app.MapPost("/api/feature-flags", async (CreateFeatureFlagRequest request, AppDbContext dbContext) =>
+{
+    // Check for duplicate key
+    if (await dbContext.FeatureFlags.AnyAsync(f => f.Key == request.Key))
+    {
+        return Results.Conflict();
+    }
+
+    var featureFlag = new FeatureFlag
+    {
+        Id = Guid.NewGuid(),
+        Key = request.Key,
+        Description = request.Description,
+        Enabled = request.Enabled,
+        RolloutPercentage = request.RolloutPercentage
+    };
+
+    dbContext.FeatureFlags.Add(featureFlag);
+    await dbContext.SaveChangesAsync();
+
+    var response = new FeatureFlagResponse
+    {
+        Id = featureFlag.Id,
+        Key = featureFlag.Key,
+        Description = featureFlag.Description,
+        Enabled = featureFlag.Enabled,
+        RolloutPercentage = featureFlag.RolloutPercentage
+    };
+
+    return Results.Created($"/api/feature-flags/{featureFlag.Id}", response);
+});
+
+app.MapGet("/api/feature-flags", async (AppDbContext dbContext) =>
+{
+    var featureFlags = await dbContext.FeatureFlags.ToListAsync();
+    var responses = featureFlags.Select(f => new FeatureFlagResponse
+    {
+        Id = f.Id,
+        Key = f.Key,
+        Description = f.Description,
+        Enabled = f.Enabled,
+        RolloutPercentage = f.RolloutPercentage
+    }).ToList();
+
+    return Results.Ok(responses);
+});
+
+app.MapGet("/api/feature-flags/{id:guid}", async (Guid id, AppDbContext dbContext) =>
+{
+    var featureFlag = await dbContext.FeatureFlags.FindAsync(id);
+    if (featureFlag == null)
+    {
+        return Results.NotFound();
+    }
+
+    var response = new FeatureFlagResponse
+    {
+        Id = featureFlag.Id,
+        Key = featureFlag.Key,
+        Description = featureFlag.Description,
+        Enabled = featureFlag.Enabled,
+        RolloutPercentage = featureFlag.RolloutPercentage
+    };
+
+    return Results.Ok(response);
+});
+
+app.MapPut("/api/feature-flags/{id:guid}", async (Guid id, UpdateFeatureFlagRequest request, AppDbContext dbContext) =>
+{
+    var featureFlag = await dbContext.FeatureFlags.FindAsync(id);
+    if (featureFlag == null)
+    {
+        return Results.NotFound();
+    }
+
+    featureFlag.Key = request.Key;
+    featureFlag.Description = request.Description;
+    featureFlag.Enabled = request.Enabled;
+    featureFlag.RolloutPercentage = request.RolloutPercentage;
+
+    await dbContext.SaveChangesAsync();
+
+    var response = new FeatureFlagResponse
+    {
+        Id = featureFlag.Id,
+        Key = featureFlag.Key,
+        Description = featureFlag.Description,
+        Enabled = featureFlag.Enabled,
+        RolloutPercentage = featureFlag.RolloutPercentage
+    };
+
+    return Results.Ok(response);
+});
+
+app.MapDelete("/api/feature-flags/{id:guid}", async (Guid id, AppDbContext dbContext) =>
+{
+    var featureFlag = await dbContext.FeatureFlags.FindAsync(id);
+    if (featureFlag == null)
+    {
+        return Results.NotFound();
+    }
+
+    dbContext.FeatureFlags.Remove(featureFlag);
+    await dbContext.SaveChangesAsync();
+
+    return Results.NoContent();
 });
 
 app.Run();
