@@ -1,6 +1,25 @@
 name: minimal-asp-net-soa-solution-template
 
 services:
+  # =================
+  # = Service names =
+  # =================
+  example-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: ExampleService
+    ports:
+      - "5252:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: example_service
+    networks:
+      - backend
 
   # ====================
   # = Ingress services =
