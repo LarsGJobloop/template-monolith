@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Testcontainers.PostgreSql;
 
 namespace ExampleService.Spec.Probes;
 
@@ -20,7 +21,7 @@ public class HealthCheckProbe(WebApplicationFactory<Program> factory) : TestEnvi
 
 public class ReadinessProbe(WebApplicationFactory<Program> factory) : TestEnvironment(factory)
 {
-    [Fact(Skip = "Skipping test until readiness check is implemented")]
+    [Fact(Skip = "Skipping test until readiness spec is implemented")]
     public async Task GivenNoDatabaseAvailable_WhenTheReadinessCheckIsCalled_ThenTheResponseIsUnsuccessful()
     {
         // Given no database available
@@ -31,23 +32,16 @@ public class ReadinessProbe(WebApplicationFactory<Program> factory) : TestEnviro
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
     }
 
-    [Fact(Skip = "Skipping test until readiness check is implemented")]
+    [Fact(Skip = "Skipping test until readiness spec is implemented")]
     public async Task GivenAHealthyDatabase_WhenTheReadinessCheckIsCalled_ThenTheResponseIsSuccessful()
     {
         // Given a healthy database
-        var testContainer = new ContainerBuilder()
-            .WithImage("postgres:16")
-            .WithName("test-postgres")
-            .WithPortBinding(5432)
-            .WithEnvironment("POSTGRES_PASSWORD", "postgres")
-            .WithEnvironment("POSTGRES_USER", "postgres")
-            .WithEnvironment("POSTGRES_DB", "postgres")
-            .WithWaitStrategy(Wait
-                .ForUnixContainer()
-                .UntilHttpRequestIsSucceeded(request =>
-                    request.ForPort(5432).ForStatusCode(HttpStatusCode.OK)))
+        var postgres = new PostgreSqlBuilder()
+            .WithDatabase("postgres")
+            .WithUsername("postgres")
+            .WithPassword("postgres")
             .Build();
-        await testContainer.StartAsync();
+        await postgres.StartAsync();
 
         // When the readiness check is called
         var response = await ServiceHttpClient.GetAsync("/ready");
