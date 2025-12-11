@@ -18,7 +18,7 @@ public class HealthCheckProbe : TestEnvironment
 
 public class ReadinessProbe : TestEnvironment
 {
-    [Fact(Skip = "Skipping test until readiness spec is implemented")]
+    [Fact]
     public async Task GivenNoDatabaseAvailable_WhenTheReadinessCheckIsCalled_ThenTheResponseIsUnsuccessful()
     {
         // Given no database available
