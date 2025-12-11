@@ -29,7 +29,7 @@ public class ReadinessProbe : TestEnvironment
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
     }
 
-    [Fact(Skip = "Skipping test until readiness spec is implemented")]
+    [Fact]
     public async Task GivenAHealthyDatabase_WhenTheReadinessCheckIsCalled_ThenTheResponseIsSuccessful()
     {
         // Given a healthy database is available
