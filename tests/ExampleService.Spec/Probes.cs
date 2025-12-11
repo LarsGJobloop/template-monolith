@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 
 namespace ExampleService.Spec.Probes;
 
@@ -16,29 +16,3 @@ public class HealthCheckProbe : TestEnvironment
     }
 }
 
-public class ReadinessProbe : TestEnvironment
-{
-    [Fact]
-    public async Task GivenNoDatabaseAvailable_WhenTheReadinessCheckIsCalled_ThenTheResponseIsUnsuccessful()
-    {
-        // Given no database available
-        // When the readiness check is called
-        var response = await Client.GetAsync("/ready");
-
-        // Then the response is unsuccessful
-        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task GivenAHealthyDatabase_WhenTheReadinessCheckIsCalled_ThenTheResponseIsSuccessful()
-    {
-        // Given a healthy database is available
-        await InitializeAsync();
-
-        // When the readiness check is called
-        var response = await Client.GetAsync("/ready");
-
-        // Then the response is successful
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
-}

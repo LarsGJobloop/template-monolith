@@ -38,15 +38,6 @@ using (var scope = app.Services.CreateScope())
 
 app.MapGet("/health", () => Results.Ok());
 
-app.MapGet("/ready", async (AppDbContext dbContext) =>
-{
-  if (await dbContext.Database.CanConnectAsync())
-  {
-    return Results.Ok();
-  }
-  return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
-});
-
 // Feature Flags API
 app.MapPost("/api/feature-flags", async (CreateFeatureFlagRequest request, AppDbContext dbContext) =>
 {
