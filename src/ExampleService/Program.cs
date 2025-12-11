@@ -1,5 +1,6 @@
-using ExampleService.Infrastructure.AppDbContext;
+using ExampleService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
   options.UseNpgsql(connectionString));
 
 var app = builder.Build();
+
+// Run database migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        throw new Exception("An error occurred while migrating the database.", ex);
+    }
+}
 
 app.MapGet("/health", () => Results.Ok());
 
