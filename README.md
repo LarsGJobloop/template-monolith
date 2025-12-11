@@ -13,10 +13,21 @@ Content:
   - DatabaseContext
   - Simple schema migration
 
+## Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/): Required for running the Docker Compose setup^1
+- [.NET 10.0](https://dotnet.microsoft.com/download/dotnet/10.0): Required for developing the Services.
+
+^1 There are alternatives for running containers through a Compose manifest, but Docker Desktop is the most ubiquitous solution.
+
+> [!TIP]
+>
+> While a container runtime is required on the host, other toolchains can be acquired through the Nix Flake Dev Shell. This is for the more adventurous, but saves time in the long run.
+
 ## Setup
 
 1. Create a new repository from this template
-2. Verify host dependenciese are met
+2. Verify host dependencies are met
 3. Start developing and making changes
 
    - Run tests:
@@ -62,9 +73,9 @@ All services are accessible through Traefik reverse proxy at the following addre
 
 ## References
 
-- [.NET 10.0]()
-- [xUnit]()
-- [Docker Desktop]()
-- [Docker Compose]()
-- [ASP .NET]()
-- [PostgreSQL]()
+- [.NET 10.0](https://dotnet.microsoft.com/download/dotnet/10.0)
+- [xUnit](https://xunit.net/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- [ASP .NET](https://dotnet.microsoft.com/apps/aspnet)
+- [PostgreSQL](https://www.postgresql.org/)
