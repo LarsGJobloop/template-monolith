@@ -4,11 +4,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-var dbPort = Environment.GetEnvironmentVariable("DB_PORT");
-var dbUser = Environment.GetEnvironmentVariable("DB_USER");
-var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
-var dbDatabase = Environment.GetEnvironmentVariable("DB_DATABASE");
+var dbHost = Environment.GetEnvironmentVariable("DB_HOST")
+    ?? throw new InvalidOperationException("DB_HOST environment variable is not set");
+var dbPort = Environment.GetEnvironmentVariable("DB_PORT")
+    ?? throw new InvalidOperationException("DB_PORT environment variable is not set");
+var dbUser = Environment.GetEnvironmentVariable("DB_USER")
+    ?? throw new InvalidOperationException("DB_USER environment variable is not set");
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD")
+    ?? throw new InvalidOperationException("DB_PASSWORD environment variable is not set");
+var dbDatabase = Environment.GetEnvironmentVariable("DB_DATABASE")
+    ?? throw new InvalidOperationException("DB_DATABASE environment variable is not set");
 var connectionString = $"Host={dbHost};Port={dbPort};Username={dbUser};Password={dbPassword};Database={dbDatabase}";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
