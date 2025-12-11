@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using ExampleService.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
 namespace ExampleService.Spec;
@@ -14,14 +17,12 @@ public class TestEnvironment : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres;
 
-    public WebApplicationFactory<Program> Factory { get; private set; }
+    public WebApplicationFactory<Program> Factory { get; private set; } = null!;
 
     public HttpClient Client => Factory.CreateClient();
 
     public TestEnvironment()
     {
-        Factory = new WebApplicationFactory<Program>();
-
         _postgres = new PostgreSqlBuilder()
             .WithDatabase(TestEnvironmentVariables.DB_DATABASE)
             .WithUsername(TestEnvironmentVariables.DB_USER)
@@ -33,16 +34,36 @@ public class TestEnvironment : IAsyncLifetime
     {
         await _postgres.StartAsync();
 
-        // Set environment variables for the SUT
-        Environment.SetEnvironmentVariable("DB_HOST", _postgres.Hostname);
-        Environment.SetEnvironmentVariable("DB_PORT", _postgres.GetMappedPublicPort(5432).ToString());
-        Environment.SetEnvironmentVariable("DB_USER", TestEnvironmentVariables.DB_USER);
-        Environment.SetEnvironmentVariable("DB_PASSWORD", TestEnvironmentVariables.DB_PASSWORD);
-        Environment.SetEnvironmentVariable("DB_DATABASE", TestEnvironmentVariables.DB_DATABASE);
+        // Configure factory with per-instance configuration to avoid parallel test interference
+        var connectionString = string.Join(";", [
+            $"Host={_postgres.Hostname}",
+            $"Port={_postgres.GetMappedPublicPort(5432)}",
+            $"Username={TestEnvironmentVariables.DB_USER}",
+            $"Password={TestEnvironmentVariables.DB_PASSWORD}",
+            $"Database={TestEnvironmentVariables.DB_DATABASE}"
+        ]);
+        
+        Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                // Override DbContext configuration with test-specific connection string
+                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (descriptor != null)
+                {
+                    services.Remove(descriptor);
+                }
+                services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+            });
+        });
     }
 
     public async Task DisposeAsync()
     {
+        if (Factory != null)
+        {
+            await Factory.DisposeAsync();
+        }
         await _postgres.DisposeAsync();
     }
 }
