@@ -29,7 +29,8 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        throw new Exception("An error occurred while migrating the database.", ex);
+        logger.LogError(ex, "An error occurred while migrating the database.");
+        throw;
     }
 }
 
