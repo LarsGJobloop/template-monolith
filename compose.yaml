@@ -1,0 +1,47 @@
+name: minimal-asp-net-soa-solution-template
+
+services:
+  # =====================
+  # = Database services =
+  # =====================
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-web-ui:
+    image: dpage/pgadmin4
+    ports:
+      - "8081:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+# ====================
+# = Defined networks =
+# ====================
+networks:
+  backend:
+
+# =================
+# = Named volumes =
+# =================
+volumes:
+  postgres-data:
+  pgadmin-data:
