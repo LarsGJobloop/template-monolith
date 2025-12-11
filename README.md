@@ -37,6 +37,10 @@ Content:
      docker compose down --volumes --remove-orphans
      ```
 
+## Notes
+
+- When adding a new database (in [init-database.sql](/init-databases.sql)). You need to clear out the database volume (DELETING ALL DATA) using `docker compose down --volumes`. It's the simplest solution for development, though production would run a dedicated migration script.
+
 ## References
 
 - [.NET 10.0]()
