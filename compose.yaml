@@ -1,6 +1,29 @@
 name: minimal-asp-net-soa-solution-template
 
 services:
+
+  # ====================
+  # = Ingress services =
+  # ====================
+  traefik:
+    image: "traefik:v3.4"
+    container_name: "traefik"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proxy"
+      - "--entryPoints.web.address=:80"
+    # Exposed ports to the host for HTTP (not HTTPS)
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - backend
+
   # =====================
   # = Database services =
   # =====================
