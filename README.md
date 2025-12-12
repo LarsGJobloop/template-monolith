@@ -8,6 +8,7 @@ Content:
   - Application service (monolith)
   - Database service (PostgreSQL)
   - Database administration UI (pgAdmin)
+  - Object storage service (MinIO)
 - Single .NET Application project
   - Entity Framework Core with PostgreSQL
   - Automatic database migrations on startup
@@ -57,6 +58,7 @@ Content:
 
 - **Application API**: http://localhost:8080
   - Health Check: http://localhost:8080/health
+  - Status Check: http://localhost:8080/status (includes database and object storage health)
 
 - **pgAdmin**: http://localhost:8081
   - PostgreSQL administration UI
@@ -66,6 +68,11 @@ Content:
     - Port: 5432
     - Username: postgres
     - Password: postgres
+
+- **MinIO Console**: http://localhost:9001
+  - Object storage administration UI
+  - Default credentials: minioadmin / minioadmin
+  - API endpoint: http://localhost:9000
 
 ## Project Structure
 
