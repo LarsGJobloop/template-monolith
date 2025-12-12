@@ -3,6 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Application.Infrastructure.Data;
 using Testcontainers.PostgreSql;
+using Testcontainers.Minio;
+using Minio;
+using Minio.DataModel.Args;
 
 namespace Application.Spec;
 
@@ -11,11 +14,15 @@ static class TestEnvironmentVariables
     public const string DB_USER = "default_user";
     public const string DB_PASSWORD = "default_password";
     public const string DB_DATABASE = "default_database";
+
+    public const string S3_ACCESS_KEY = "minioadmin";
+    public const string S3_SECRET_KEY = "minioadmin";
 }
 
 public class TestEnvironment : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres;
+    private readonly MinioContainer _minio;
 
     public WebApplicationFactory<Program> Factory { get; private set; } = null!;
 
@@ -28,11 +35,22 @@ public class TestEnvironment : IAsyncLifetime
             .WithUsername(TestEnvironmentVariables.DB_USER)
             .WithPassword(TestEnvironmentVariables.DB_PASSWORD)
             .Build();
+
+        _minio = new MinioBuilder()
+            .WithImage("minio/minio")
+            .WithEnvironment("MINIO_ROOT_USER", TestEnvironmentVariables.S3_ACCESS_KEY)
+            .WithEnvironment("MINIO_ROOT_PASSWORD", TestEnvironmentVariables.S3_SECRET_KEY)
+            .Build();
     }
 
     public async Task InitializeAsync()
     {
         await _postgres.StartAsync();
+        await _minio.StartAsync();
+
+        var minioEndpoint = $"{_minio.Hostname}:{_minio.GetMappedPublicPort(9000).ToString()}";
+        var minioAccessKey = TestEnvironmentVariables.S3_ACCESS_KEY;
+        var minioSecretKey = TestEnvironmentVariables.S3_SECRET_KEY;
 
         var dbHost = _postgres.Hostname;
         var dbPort = _postgres.GetMappedPublicPort(5432).ToString();
@@ -55,6 +73,10 @@ public class TestEnvironment : IAsyncLifetime
         Environment.SetEnvironmentVariable("DB_USER", dbUser);
         Environment.SetEnvironmentVariable("DB_PASSWORD", dbPassword);
         Environment.SetEnvironmentVariable("DB_DATABASE", dbDatabase);
+
+        Environment.SetEnvironmentVariable("S3_ENDPOINT", minioEndpoint);
+        Environment.SetEnvironmentVariable("S3_ACCESS_KEY", minioAccessKey);
+        Environment.SetEnvironmentVariable("S3_SECRET_KEY", minioSecretKey);
         
         Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -67,6 +89,17 @@ public class TestEnvironment : IAsyncLifetime
                     services.Remove(descriptor);
                 }
                 services.AddDbContext<AppData>(options => options.UseNpgsql(connectionString));
+
+                // Override Minio configuration with test-specific connection string
+                var minioDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(MinioClient));
+                if (minioDescriptor != null)
+                {
+                    services.Remove(minioDescriptor);
+                }
+                services.AddMinio(configureClient => configureClient
+                    .WithEndpoint(minioEndpoint)
+                    .WithCredentials(minioAccessKey, minioSecretKey)
+                    .WithSSL(false));
             });
         });
     }
