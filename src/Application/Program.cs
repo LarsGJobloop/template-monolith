@@ -5,7 +5,7 @@ using Minio.DataModel.Args;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add database migrations
+// Database configuration
 var connectionString = String.Join(";", [
     $"Host={Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost"}",
     $"Port={Environment.GetEnvironmentVariable("DB_PORT") ?? "5432"}",
@@ -16,7 +16,7 @@ var connectionString = String.Join(";", [
 builder.Services.AddDbContext<AppData>(options =>
     options.UseNpgsql(connectionString));
 
-// Add object storage configuration
+// Object storage configuration
 var s3Endpoint = Environment.GetEnvironmentVariable("S3_ENDPOINT") ?? "localhost:9000";
 var s3AccessKey = Environment.GetEnvironmentVariable("S3_ACCESS_KEY") ?? "minioadmin";
 var s3SecretKey = Environment.GetEnvironmentVariable("S3_SECRET_KEY") ?? "minioadmin";
@@ -29,7 +29,7 @@ builder.Services.AddMinio(configureClient => configureClient
 
 var app = builder.Build();
 
-// Run database migrations on startup
+// Database migrations
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppData>();
@@ -45,6 +45,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Endpoints
 app.MapGet("/health", () => Results.Ok());
 app.MapGet("/status", async (AppData dbContext, IMinioClient minioClient) =>
 {
@@ -79,5 +80,5 @@ app.MapGet("/status", async (AppData dbContext, IMinioClient minioClient) =>
 
 app.Run();
 
-// This is required for the test environment to work
+// Test support: partial class required for WebApplicationFactory
 public partial class Program { }
