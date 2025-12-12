@@ -111,5 +111,6 @@ public class TestEnvironment : IAsyncLifetime
             await Factory.DisposeAsync();
         }
         await _postgres.DisposeAsync();
+        await _minio.DisposeAsync();
     }
 }
