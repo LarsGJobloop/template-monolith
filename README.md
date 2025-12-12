@@ -50,6 +50,13 @@ Content:
      docker compose down --volumes --remove-orphans
      ```
 
+   - Start single services in the background (ie the Database and Object Store)
+
+      ```sh
+      docker compose up --detach postgres
+      docker compose up --detach minio
+      ```
+
 > [!TIP]
 >
 > There's a couple of new CLIs in use here, so remember that most CLIs support `--help` to get a quick overview over what the various subcommands and flags are.
