@@ -97,6 +97,12 @@ tests/
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Docker Compose](https://docs.docker.com/compose/)
 - [ASP .NET](https://dotnet.microsoft.com/apps/aspnet)
-- [PostgreSQL](https://www.postgresql.org/)
 - [Entity Framework Core](https://learn.microsoft.com/en-us/ef/core/)
 - [Testcontainers](https://testcontainers.com/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [MinIO](https://www.min.io/)
+- [MinIO SDK](https://github.com/minio/minio-dotnet)
+
+> [!NOTE]
+>
+> MinIO is used as a local standin for S3 or similar Object Storage solutions, as it conforms to the ubiquitous S3 API.

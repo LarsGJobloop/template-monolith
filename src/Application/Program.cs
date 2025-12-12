@@ -1,5 +1,7 @@
 using Application.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Minio;
+using Minio.DataModel.Args;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,17 @@ var connectionString = String.Join(";", [
 ]);
 builder.Services.AddDbContext<AppData>(options =>
     options.UseNpgsql(connectionString));
+
+// Add object storage configuration
+var s3Endpoint = Environment.GetEnvironmentVariable("S3_ENDPOINT") ?? "localhost:9000";
+var s3AccessKey = Environment.GetEnvironmentVariable("S3_ACCESS_KEY") ?? "minioadmin";
+var s3SecretKey = Environment.GetEnvironmentVariable("S3_SECRET_KEY") ?? "minioadmin";
+
+// We are disabling SSL for now, as it's problematic to set up development environments with it.
+builder.Services.AddMinio(configureClient => configureClient
+    .WithEndpoint(s3Endpoint)
+    .WithCredentials(s3AccessKey, s3SecretKey)
+    .WithSSL(false));
 
 var app = builder.Build();
 
