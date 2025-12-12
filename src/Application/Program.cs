@@ -46,6 +46,36 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapGet("/health", () => Results.Ok());
+app.MapGet("/status", async (AppData dbContext, IMinioClient minioClient) =>
+{
+    var databaseHealthy = false;
+    var objectStorageHealthy = false;
+
+    try
+    {
+        databaseHealthy = await dbContext.Database.CanConnectAsync();
+    }
+    catch
+    {
+        databaseHealthy = false;
+    }
+
+    try
+    {
+        var buckets = await minioClient.ListBucketsAsync();
+        objectStorageHealthy = buckets != null;
+    }
+    catch
+    {
+        objectStorageHealthy = false;
+    }
+    return Results.Ok(new
+    {
+        status = databaseHealthy && objectStorageHealthy ? "healthy" : "unhealthy",
+        database = databaseHealthy ? "healthy" : "unhealthy",
+        object_storage = objectStorageHealthy ? "healthy" : "unhealthy"
+    });
+});
 
 app.Run();
 
