@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using ExampleService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Application.Infrastructure.Data;
 using Testcontainers.PostgreSql;
 
-namespace ExampleService.Spec;
+namespace Application.Spec;
 
 static class TestEnvironmentVariables
 {
@@ -61,12 +61,12 @@ public class TestEnvironment : IAsyncLifetime
             builder.ConfigureServices(services =>
             {
                 // Override DbContext configuration with test-specific connection string
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppData>));
                 if (descriptor != null)
                 {
                     services.Remove(descriptor);
                 }
-                services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+                services.AddDbContext<AppData>(options => options.UseNpgsql(connectionString));
             });
         });
     }

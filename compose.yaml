@@ -1,67 +1,24 @@
 name: minimal-asp-net-soa-solution-template
 
 services:
-  # =================
-  # = Service names =
-  # =================
-  example-service:
+  # ===============
+  # = Application =
+  # ===============
+  applciation:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        SERVICE_NAME: ExampleService
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
-      DB_DATABASE: example_service
-    networks:
-      - backend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.example-service.rule=Host(`example-service.localhost`)"
-      - "traefik.http.routers.example-service.entrypoints=web"
-      - "traefik.http.services.example-service.loadbalancer.server.port=8080"
-    healthcheck:
-      # TCP healthcheck - checks if port 8080 is listening (no external tools required)
-      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/127.0.0.1/8080' || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
+      DB_DATABASE: application
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
-
-  # ====================
-  # = Ingress services =
-  # ====================
-  traefik:
-    image: "traefik:v3.4"
-    container_name: "traefik"
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=backend"
-      - "--entryPoints.web.address=:80"
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
-    # Exposed ports to the host for HTTP (not HTTPS)
-    ports:
-      - "80:80"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    networks:
-      - backend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
-      - "traefik.http.routers.traefik.entrypoints=web"
-      - "traefik.http.routers.traefik.service=api@internal"
 
   # =====================
   # = Database services =
@@ -75,8 +32,6 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql
       - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
-    networks:
-      - backend
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -88,21 +43,10 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: password
-    networks:
-      - backend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.localhost`)"
-      - "traefik.http.routers.pgadmin.entrypoints=web"
-      - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
+    ports:
+      - "8081:80"
     depends_on:
       - postgres
-
-# ====================
-# = Defined networks =
-# ====================
-networks:
-  backend:
 
 # =================
 # = Named volumes =

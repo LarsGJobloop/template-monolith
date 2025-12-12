@@ -1,9 +1,0 @@
-<Solution>
-  <Folder Name="/src/">
-    <Project Path="src/Contracts/Contracts.csproj" />
-    <Project Path="src/ExampleService/ExampleService.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/ExampleService.Spec/ExampleService.Spec.csproj" />
-  </Folder>
-</Solution>

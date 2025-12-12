@@ -21,9 +21,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Contracts\Contracts.csproj" />
-    <ProjectReference Include="..\..\src\ExampleService\ExampleService.csproj" />
+    <ProjectReference Include="..\..\src\Application\Application.csproj" />
   </ItemGroup>
 
 </Project>
