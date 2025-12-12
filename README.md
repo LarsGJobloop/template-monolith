@@ -1,22 +1,23 @@
 # <MINIMAL TEMPLATE>
 
-A minimal template for a multi service ASP .NET solution.
+A minimal template for an ASP .NET monolith application.
 
 Content:
 
 - Preconfigured Docker Compose manifest
+  - Application service (monolith)
   - Database service (PostgreSQL)
-  - Ingress service (Traefik)
-- A single .NET Service example
-  - Controller-based API with automatic model validation
-  - ATDD style test configured with TestEnvironment abstraction
-  - DatabaseContext
-  - Simple schema migration
+  - Database administration UI (pgAdmin)
+- Single .NET Application project
+  - Entity Framework Core with PostgreSQL
+  - Automatic database migrations on startup
+  - Health check endpoint
+  - ATDD style tests configured with TestEnvironment abstraction using Testcontainers
 
 ## Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/): Required for running the Docker Compose setup^1
-- [.NET 10.0](https://dotnet.microsoft.com/download/dotnet/10.0): Required for developing the Services.
+- [.NET 10.0](https://dotnet.microsoft.com/download/dotnet/10.0): Required for developing the application
 
 ^1 There are alternatives for running containers through a Compose manifest, but Docker Desktop is the most ubiquitous solution.
 
@@ -36,7 +37,7 @@ Content:
      dotnet test
      ```
 
-   - Start services:
+   - Start the application and dependencies:
 
      ```sh
      docker compose up
@@ -48,28 +49,46 @@ Content:
      docker compose down --volumes --remove-orphans
      ```
 
+> [!TIP]
+>
+> There's a couple of new CLIs in use here, so remember that most CLIs support `--help` to get a quick overview over what the various subcommands and flags are.
+
 ## Services
 
-All services are accessible through Traefik reverse proxy at the following addresses:
+- **Application API**: http://localhost:8080
+  - Health Check: http://localhost:8080/health
 
-- **Example Service API**: http://example-service.localhost
-
-  - Feature Flags API: http://example-service.localhost/api/feature-flags
-  - Health Check: http://example-service.localhost/health
-
-- **Traefik Dashboard**: http://traefik.localhost
-
-  - View routing configuration and service status
-
-- **pgAdmin**: http://pgadmin.localhost
+- **pgAdmin**: http://localhost:8081
   - PostgreSQL administration UI
   - Default credentials: admin@example.com / password
+  - Connect to PostgreSQL using:
+    - Host: postgres
+    - Port: 5432
+    - Username: postgres
+    - Password: postgres
 
-> **Note**: Ensure your `/etc/hosts` includes entries for `*.localhost` domains, or use a DNS service that resolves `*.localhost` to `127.0.0.1`.
+## Project Structure
+
+```
+src/
+  Application/              # Main monolith application
+    Infrastructure/
+      Data/                 # Entity Framework DbContext
+      Migrations/           # Database migrations
+    Program.cs              # Application entry point
+tests/
+  Application.Spec/         # Integration tests with Testcontainers
+```
 
 ## Notes
 
-- When adding a new database (in [init-database.sql](/init-databases.sql)). You need to clear out the database volume (DELETING ALL DATA) using `docker compose down --volumes`. It's the simplest solution for development, though production would run a dedicated migration script.
+- Database migrations run automatically on application startup
+- When modifying the database schema, create migrations using:
+  ```sh
+  dotnet ef migrations add ${MigrationName} --project src/Application
+  ```
+- If you need to add a new database in [init-databases.sql](/init-databases.sql), clear the database volume using `docker compose down --volumes` (this will delete all data).
+- Tests use Testcontainers to spin up isolated PostgreSQL instances, ensuring test isolation and no interference between parallel test runs.
 
 ## References
 
@@ -79,3 +98,5 @@ All services are accessible through Traefik reverse proxy at the following addre
 - [Docker Compose](https://docs.docker.com/compose/)
 - [ASP .NET](https://dotnet.microsoft.com/apps/aspnet)
 - [PostgreSQL](https://www.postgresql.org/)
+- [Entity Framework Core](https://learn.microsoft.com/en-us/ef/core/)
+- [Testcontainers](https://testcontainers.com/)
