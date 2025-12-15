@@ -52,10 +52,10 @@ Content:
 
    - Start single services in the background (ie the Database and Object Store)
 
-      ```sh
-      docker compose up --detach postgres
-      docker compose up --detach minio
-      ```
+     ```sh
+     docker compose up --detach postgres
+     docker compose up --detach minio
+     ```
 
 > [!TIP]
 >
