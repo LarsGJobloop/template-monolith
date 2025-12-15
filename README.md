@@ -75,7 +75,7 @@ Content:
 
 - **Application API**: http://localhost:8080
   - Health Check: http://localhost:8080/health
-  - Status Check: http://localhost:8080/status (includes database and object storage health)
+  - Status Check: http://localhost:8080/status (checks database and object storage connectivity)
 
 - **pgAdmin**: http://localhost:8081
   - PostgreSQL administration UI
@@ -107,11 +107,15 @@ tests/
 ## Notes
 
 - Database migrations run automatically on application startup
+
 - When modifying the database schema, create migrations using:
+
   ```sh
   dotnet ef migrations add ${MigrationName} --project src/Application
   ```
+
 - If you need to add a new database in [init-databases.sql](/init-databases.sql), clear the database volume using `docker compose down --volumes` (this will delete all data).
+
 - Tests use Testcontainers to spin up isolated PostgreSQL instances, ensuring test isolation and no interference between parallel test runs.
 
 ## References
