@@ -15,6 +15,12 @@ Content:
   - Health check endpoint
   - ATDD style tests configured with TestEnvironment abstraction using Testcontainers
 
+## Usage
+
+1. Create a new repository from this template
+2. Check it out locally (VS Code -> Git Clone repository)
+3. Start writing specifications, implementing, refactor and document your solution
+
 ## Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/): Required for running the Docker Compose setup^1
@@ -27,6 +33,10 @@ Content:
 > While a container runtime is required on the host, other toolchains can be acquired through the Nix Flake Dev Shell. This is for the more adventurous, but saves time in the long run.
 
 ## Setup
+
+> [!IMPORTANT]
+>
+> Since this is using containers as stand-ins for cloud service, you need your container runtime (Docker Compose/OrbStack) running to work with these.
 
 1. Create a new repository from this template
 2. Verify host dependencies are met
