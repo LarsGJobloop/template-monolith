@@ -1,18 +1,18 @@
 # <MINIMAL TEMPLATE>
 
-A minimal template for an ASP .NET monolith application.
+A template for application development in cloud-native settings with a small set of provided services and SDKs preconfigured.
 
 Content:
 
-- Preconfigured Docker Compose manifest
+- Cloud-native infrastructure services (Docker Compose)
   - Application service (monolith)
   - Database service (PostgreSQL)
   - Database administration UI (pgAdmin)
-  - Object storage service (MinIO)
-- Single .NET Application project
-  - Entity Framework Core with PostgreSQL
+  - Object storage service (MinIO - S3-compatible)
+- Preconfigured .NET Application project
+  - Entity Framework Core with PostgreSQL SDK
   - Automatic database migrations on startup
-  - Health check endpoint
+  - Health check endpoints for service monitoring
   - ATDD style tests configured with TestEnvironment abstraction using Testcontainers
 
 ## Usage
